@@ -12,7 +12,7 @@ try {
         $custId = $_GET['custId'];
 
         $stmt = $conn->prepare("SELECT * FROM customer_smile_id WHERE cust_id = ?");
-        $stmt->bind_param("s", $custId); // "s" means the parameter is a string
+        $stmt->bind_param("s", $custId); // String parameter
         $stmt->execute();
 
         // Fetch the result
