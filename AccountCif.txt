@@ -1,0 +1,29 @@
+Headers:
+
+AppKey: ae819f1e854c4d06af2bf4b68f32493a
+AppId:  FGT
+
+url:
+https://fi-bridge-dev.fbn-devops-dev-asenv.appserviceenvironment.net/api/v1/account/get-bvn-with-account-number
+
+Request Payload:
+{
+  "AccountNumber": "3048353567",
+  "RequestId": "strivsdaffsdeng",
+  "CountryId": "01"
+}
+
+Response Payload:
+
+{
+  "AccountNumber": "3048353567",
+  "CifId": "442009914",
+  "CustomerId": null,
+  "Bvn": "3048353567",
+  "RequestId": "strivsdaffsdeng",
+  "ResponseCode": "00",
+  "ResponseMessage": "Successful"
+}
+
+
+NB:The request ID in the request payload must be unique for every request.

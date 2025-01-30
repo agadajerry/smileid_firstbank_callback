@@ -1,15 +1,36 @@
 <?php
+define("PARTNER_ID", "045");
+define("API_KEY", "5888a5b2-74be-44fb-b54a-2686c981d17c");
+define("USERNAME", "agadajerry");
+define("PASSWORD", "idoko400");
+
+
 
 include "connection.php";
 header("Content-Type: application/json");
 
 
+    $username = $_GET['username']; 
+    $password = $_GET['password'];   
+    // file_put_contents('username.txt', print_r($username. $password, true));
+
+    if ($username !== USERNAME || $password !== PASSWORD) {
+        echo json_encode(['msg' => 'Unauthorized']);
+        http_response_code(401);
+        exit();
+    }
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get the JSON input
     $input = json_decode(file_get_contents('php://input'), true);
-
+    
     if (isset($input['FullData'])) {
+        
         $data = $input['FullData'];
+        
+
+        
         // Create result array
         $resultArray = [
             'LastName' => $data['LastName'] ?? null,
@@ -37,12 +58,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'IDNumberPreviouslyRegistered' => $input['IDNumberPreviouslyRegistered'] ?? null,
             'IDType' => $input['IDType'] ?? null,
             'ConfidenceValue' => $input['ConfidenceValue'] ?? null,
-            'Actions' => $input['Actions'] ?? null
+            'Actions' => $input['Actions'] ?? null,
+            'signature' => $input['signature'] ?? null,
+            'timestamp' => $input['timestamp'] ?? null
         ];
 
         // If the success flag is false
 
         if ($input['FullData']['success']) {
+
+            file_put_contents('input.txt', print_r($input, true));
+
+                // check the validity of the signature
+
+            if(confirmSignature($input['signature'],
+            $input['timestamp'],
+             PARTNER_ID, API_KEY) === false) {
+               echo json_encode(['msg' => 'uNAUTHORIZED']);
+               http_response_code(401);
+               exit();
+           }
+
 
             // Check if user exists based on iDNumber(BVN)
             $idNumber = $conn->real_escape_string($input['IDNumber']);
@@ -60,7 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sql2 = "INSERT INTO customer_smile_id (cust_id, bio_data) VALUES ('$idNumber', '$jsonResult')";
                 $result2 = $conn->query($sql2);
             } else {
-
                 // Insert new user if not found
                 $sql = "INSERT INTO customer_smile_id (cust_id, bio_data) VALUES ('$idNumber', '$jsonResult')";
                 $conn->query($sql);
@@ -81,4 +116,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['msg' => 'Method not allowed']);
     http_response_code(405);
 }
+
+
+
+function confirmSignature( string $receivedSignature, string $receivedTimestamp, string $partnerId, string $apiKey): bool
+{
+
+    $message = $receivedTimestamp . $partnerId . "sid_request";
+    $generatedSignature = base64_encode(string: hash_hmac('sha256', $message, $apiKey, true));
+
+    return $generatedSignature === $receivedSignature;
+}
+
+
+
 
